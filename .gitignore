@@ -1,0 +1,23 @@
+
+# Environment variables and secrets
+.env
+.env.*
+
+# Allow example configuration
+!.env.example
+
+# Python environment
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# IDE files
+.vscode/
+
+# Operating system
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

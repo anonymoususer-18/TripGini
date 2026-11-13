@@ -1,0 +1,137 @@
+
+services:
+
+  # MySQL database
+  mysql:
+    image: mysql:8.0
+    container_name: tripgenie-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - tripgenie-network
+        
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # MongoDB database
+  mongo:
+    image: mongo:7
+    container_name: tripgenie-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - tripgenie-network
+    
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # User Service
+  user-service:
+    build: ./services/user
+    container_name: tripgenie-user
+    restart: unless-stopped
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - tripgenie-network
+
+  # Destination Service
+  destination-service:
+    build: ./services/destination
+    container_name: tripgenie-destination
+    restart: unless-stopped
+    environment:
+      MONGO_URI: ${MONGO_DOCKER_URI}
+      MONGO_DATABASE: ${MONGO_DATABASE}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - tripgenie-network
+
+  # AI Service
+  ai-service:
+    build: ./services/ai
+    container_name: tripgenie-ai
+    restart: unless-stopped
+    environment:
+      AI_PROVIDER: ${AI_PROVIDER}
+      AI_API_KEY: ${AI_API_KEY}
+      AI_MODEL: ${AI_MODEL}
+    networks:
+      - tripgenie-network
+
+  # API Gateway
+  api-gateway:
+    build: ./api-gateway
+    container_name: tripgenie-gateway
+    restart: unless-stopped
+    environment:
+      USER_SERVICE_URL: http://user-service:5001
+      DESTINATION_SERVICE_URL: http://destination-service:5002
+      AI_SERVICE_URL: http://ai-service:5003
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - user-service
+      - destination-service
+      - ai-service
+    networks:
+      - tripgenie-network
+
+  # Frontend
+  frontend:
+    build: ./frontend
+    container_name: tripgenie-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - tripgenie-network
+
+
+# Existing persistent database volumes
+volumes:
+  mysql_data:
+    external: true
+    name: tripgenie_mysql_data
+
+  mongo_data:
+    external: true
+    name: tripgenie_mongo_data
+
+
+# Internal Docker network
+networks:
+  tripgenie-network:
+    driver: bridge

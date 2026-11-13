@@ -1,0 +1,339 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TripGenie | Discover Your Next Adventure</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #100b25, #17123b, #101a35);
+            color: white;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+        }
+
+        .glass {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.12);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, #c084fc, #60a5fa);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .vibe {
+            cursor: pointer;
+            border: 1px solid #514477;
+            padding: 10px 16px;
+            border-radius: 25px;
+            transition: 0.2s;
+        }
+
+        .vibe.selected {
+            background: linear-gradient(90deg, #9333ea, #3b82f6);
+            border-color: transparent;
+        }
+
+        .primary-btn {
+            background: linear-gradient(90deg, #9333ea, #3b82f6);
+            transition: 0.3s;
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        input, select {
+            color: white;
+            background: #211b42;
+            border: 1px solid #514477;
+            border-radius: 10px;
+            padding: 12px;
+            width: 100%;
+            outline: none;
+        }
+
+        option {
+            background: #211b42;
+            color: white;
+        }
+
+        .destination-card {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 18px;
+            padding: 22px;
+        }
+
+        .auth-input {
+            margin-top: 7px;
+        }
+
+        .auth-tab {
+            padding: 10px 18px;
+            border-radius: 10px;
+            color: #c4b5fd;
+        }
+
+        .auth-tab.active {
+            background: linear-gradient(90deg, #9333ea, #3b82f6);
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
+        <h1 class="text-2xl font-bold">
+            ✈ Trip<span class="gradient-text">Genie</span>
+        </h1>
+
+        <div class="flex flex-wrap items-center gap-4 text-sm">
+            <a href="#planner" class="hover:text-white">Plan a Trip</a>
+            <a href="#results" class="hover:text-white">Discover</a>
+
+            <div id="guestButtons" class="flex gap-2">
+                <button id="loginButton"
+                    class="border border-purple-400 px-4 py-2 rounded-full hover:bg-purple-900">
+                    Login
+                </button>
+
+                <button id="signupButton"
+                    class="primary-btn px-4 py-2 rounded-full font-semibold">
+                    Sign Up
+                </button>
+            </div>
+
+            <div id="userButtons" class="hidden items-center gap-3">
+                <span id="welcomeUser" class="text-purple-300"></span>
+                <button id="logoutButton"
+                    class="border border-purple-400 px-4 py-2 rounded-full hover:bg-purple-900">
+                    Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Authentication Modal -->
+    <div id="authModal"
+        class="hidden fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center p-4">
+
+        <div class="glass w-full max-w-md p-7 relative">
+
+            <button id="closeAuth"
+                type="button"
+                class="absolute top-4 right-5 text-2xl text-gray-400 hover:text-white">
+                &times;
+            </button>
+
+            <h2 class="text-3xl font-bold mb-2">
+                Welcome to <span class="gradient-text">TripGenie</span>
+            </h2>
+
+            <p class="text-gray-400 mb-6">
+                Sign in or create an account to get started.
+            </p>
+
+            <div class="flex gap-3 mb-6">
+                <button id="loginTab" class="auth-tab active" type="button">
+                    Login
+                </button>
+
+                <button id="signupTab" class="auth-tab" type="button">
+                    Sign Up
+                </button>
+            </div>
+
+            <div id="authMessage" class="hidden mb-4 text-sm"></div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="space-y-4">
+
+                <div>
+                    <label for="loginEmail">Email address</label>
+                    <input id="loginEmail" class="auth-input"
+                        type="email" placeholder="Enter your email" required>
+                </div>
+
+                <div>
+                    <label for="loginPassword">Password</label>
+                    <input id="loginPassword" class="auth-input"
+                        type="password" placeholder="Enter your password" required>
+                </div>
+
+                <button type="submit"
+                    class="primary-btn w-full py-3 rounded-xl font-bold">
+                    Login
+                </button>
+            </form>
+
+            <!-- Registration Form -->
+            <form id="signupForm" class="hidden space-y-4">
+
+                <div>
+                    <label for="signupName">Full name</label>
+                    <input id="signupName" class="auth-input"
+                        type="text" placeholder="Enter your name"
+                        maxlength="100" required>
+                </div>
+
+                <div>
+                    <label for="signupEmail">Email address</label>
+                    <input id="signupEmail" class="auth-input"
+                        type="email" placeholder="Enter your email" required>
+                </div>
+
+                <div>
+                    <label for="signupPassword">Password</label>
+                    <input id="signupPassword" class="auth-input"
+                        type="password" minlength="8"
+                        placeholder="Minimum 8 characters" required>
+                </div>
+
+                <button type="submit"
+                    class="primary-btn w-full py-3 rounded-xl font-bold">
+                    Create Account
+                </button>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="max-w-5xl mx-auto text-center px-6 py-16">
+        <p class="text-purple-300 uppercase tracking-widest text-sm mb-4">
+            Your AI Travel Companion
+        </p>
+
+        <h2 class="text-4xl md:text-6xl font-bold leading-tight">
+            Your next adventure<br>
+            starts with <span class="gradient-text">TripGenie.</span>
+        </h2>
+
+        <p class="text-gray-300 mt-6 max-w-2xl mx-auto">
+            Tell us your budget, travel style and preferences.
+            Our AI will discover destinations that match your dreams.
+        </p>
+
+        <a href="#planner"
+            class="primary-btn inline-block mt-8 px-8 py-3 rounded-full font-semibold">
+            Discover Destinations →
+        </a>
+    </section>
+
+    <!-- Travel Planner -->
+    <section id="planner" class="max-w-4xl mx-auto px-6 py-10">
+        <div class="glass p-7 md:p-10">
+
+            <h2 class="text-3xl font-bold mb-2">
+                Plan Your <span class="gradient-text">Journey</span>
+            </h2>
+
+            <p class="text-gray-400 mb-8">
+                Customize your preferences to find your perfect destination.
+            </p>
+
+            <form id="tripForm" class="space-y-7">
+
+                <div>
+                    <label class="block mb-3 font-semibold">
+                        What's your budget?
+                    </label>
+
+                    <select id="budget">
+                        <option value="low">Budget Friendly</option>
+                        <option value="medium" selected>Medium Budget</option>
+                        <option value="high">Luxury Experience</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block mb-3 font-semibold">
+                        Choose your travel vibes
+                    </label>
+
+                    <div class="flex flex-wrap gap-3">
+                        <button type="button" class="vibe selected" data-vibe="beach">🏖 Beach</button>
+                        <button type="button" class="vibe" data-vibe="adventure">🧗 Adventure</button>
+                        <button type="button" class="vibe" data-vibe="nature">🌿 Nature</button>
+                        <button type="button" class="vibe" data-vibe="culture">🏛 Culture</button>
+                        <button type="button" class="vibe" data-vibe="city">🌆 City Life</button>
+                        <button type="button" class="vibe" data-vibe="relaxation">🧘 Relaxation</button>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block mb-3 font-semibold">
+                            Number of travellers
+                        </label>
+                        <input type="number" id="travelers"
+                            min="1" max="20" value="2" required>
+                    </div>
+
+                    <div>
+                        <label class="block mb-3 font-semibold">
+                            Trip duration (days)
+                        </label>
+                        <input type="number" id="duration"
+                            min="1" max="60" value="5" required>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn"
+                    class="primary-btn w-full py-4 rounded-xl font-bold text-lg">
+                    ✨ Find My Perfect Destination
+                </button>
+
+            </form>
+        </div>
+    </section>
+
+    <!-- Results -->
+    <section id="results" class="max-w-5xl mx-auto px-6 py-12">
+
+        <h2 class="text-3xl font-bold mb-2">
+            Your <span class="gradient-text">Recommendations</span>
+        </h2>
+
+        <p class="text-gray-400 mb-8">
+            Destinations selected based on your travel preferences.
+        </p>
+
+        <div id="loading" class="hidden text-center py-10">
+            <p class="text-xl text-purple-300 animate-pulse">
+                ✨ Finding your dream destinations...
+            </p>
+        </div>
+
+        <div id="error" class="hidden text-red-300 mb-6"></div>
+
+        <div id="destinationList" class="grid md:grid-cols-3 gap-6">
+            <div class="glass p-6 text-gray-400">
+                Your recommendations will appear here.
+            </div>
+        </div>
+
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-center text-gray-500 py-10">
+        <p>© 2026 TripGenie. Discover more. Travel better.</p>
+        <p class="text-sm mt-2">Powered by AI ✨</p>
+    </footer>
+
+    <script src="app.js"></script>
+
+</body>
+</html>
